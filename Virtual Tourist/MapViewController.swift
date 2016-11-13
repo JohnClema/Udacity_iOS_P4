@@ -11,69 +11,134 @@ import MapKit
 import CoreData
 import CoreLocation
 
-class MapViewController: UIViewController {
+struct ButtonTitles {
+    static let edit = "Edit"
+    static let done = "Done"
+}
+
+struct MapRegion {
+    static let archive = "mapRegionArchive"
+    
+    struct Keys {
+        static let latitude = "latitude"
+        static let longitude = "longitude"
+        static let latitudeDelta = "latitudeDelta"
+        static let longitudeDelta = "longitudeDelta"
+    }
+}
+
+class MapViewController: VirtualTouristViewController {
 
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var mapViewBottomLayoutGuide: NSLayoutConstraint!
+    var rightBarButtonItem: UIBarButtonItem?
     
-    var mapRegionFilePath : String {
-        let manager = NSFileManager.defaultManager()
-        let url = manager.URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask).first! as NSURL
-        return url.URLByAppendingPathComponent("mapRegionArchive").path!
+    var pins = [Pin]()
+
+    // Determines users current edit state
+    var editMode : Bool = false
+    
+    override var sharedContext: NSManagedObjectContext {
+        return sharedStack.context
     }
     
+    lazy var fetchedResultsController: NSFetchedResultsController<Pin> = {
+        // Initialize Fetch Request
+        let fetchRequest = NSFetchRequest<Pin>(entityName: Pin.entityName())
+        
+        // Add Sort Descriptors
+        let sortDescriptor = NSSortDescriptor(key: "creationDate", ascending: true)
+        fetchRequest.sortDescriptors = [sortDescriptor]
+        
+        // Initialize Fetched Results Controller
+        let fetchedResultsController = NSFetchedResultsController<Pin>(fetchRequest: fetchRequest, managedObjectContext: self.sharedContext, sectionNameKeyPath: nil, cacheName: nil)
+        
+        // Configure Fetched Results Controller
+        fetchedResultsController.delegate = self
+        
+        return fetchedResultsController
+    }()
     
+    //File path that keeps the last map region the use was on
+    var mapRegionFilePath : String {
+        let manager = FileManager.default
+        let url = manager.urls(for: .documentDirectory, in: .userDomainMask).first! as URL
+        return url.appendingPathComponent(MapRegion.archive).absoluteString
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.navigationItem.setRightBarButton(rightBarButtonItem, animated: true)
+
         restoreMapRegion(false)
         mapView.delegate = self
-        let editButton = UIBarButtonItem(barButtonSystemItem: .Edit, target: self, action: #selector(MapViewController.showDeleteButton))
-        self.navigationItem.setRightBarButtonItem(editButton, animated: true)
+        do {
+            try fetchedResultsController.performFetch()
+        } catch let error {
+            print(error)
+        }
+        
+        self.pins = fetchedResultsController.fetchedObjects!
         addPinDropRecognizer()
-//        showEditButton()
-//        showDeleteButton()
-        // Do any additional setup after loading the view, typically from a nib.
+        
+        rightBarButtonItem = UIBarButtonItem(title: ButtonTitles.edit, style: .plain, target: self, action: #selector(MapViewController.editButtonPressed(_:)))
+        self.navigationItem.rightBarButtonItem = rightBarButtonItem
+        self.restorePersistedAnnotations()
     }
     
-    @IBAction func editButtonPressed(sender: AnyObject) {
-        //1. Turn into edit mode
-        //2. Red message at bottom of map appears
-        //3. Tapping a location deletes it from the map
-        //4. Deletes it from CoreData
-        showDeleteButton()
-    }
-    
-    func showDeleteButton() {
-        let doneButton = UIBarButtonItem(barButtonSystemItem: .Done, target: self, action: #selector(MapViewController.showEditButton))
-        self.navigationItem.setRightBarButtonItem(doneButton, animated: true)
-        self.view.layoutIfNeeded()
-        self.mapViewBottomLayoutGuide.constant -= 60
-        UIView.animateWithDuration(0.25) {
-            self.view.layoutIfNeeded()
+    func restorePersistedAnnotations() {
+        for pin in self.pins {
+            let annotation = MKPointAnnotation()
+            annotation.coordinate = pin.coordinate
+            mapView.addAnnotation(annotation)
         }
     }
+
+    func editButtonPressed(_ sender: AnyObject) {
+        self.navigationItem.rightBarButtonItem?.title == "Edit" ? showEditButton() : showDoneButton()
+    }
     
+    // Move keyboard up and remove pins on tap
     func showEditButton() {
+        self.editMode = true
+        self.navigationItem.rightBarButtonItem?.title = ButtonTitles.done
         self.view.layoutIfNeeded()
         self.mapViewBottomLayoutGuide.constant += 60
-        UIView.animateWithDuration(0.25) {
+        UIView.animate(withDuration: 0.25, animations: {
             self.view.layoutIfNeeded()
-        }
+        })     }
+    
+    // Move keyboard down and resume adding pins
+    func showDoneButton() {
+        self.editMode = false
+        self.navigationItem.rightBarButtonItem?.title = "Edit"
+        self.view.layoutIfNeeded()
+        self.mapViewBottomLayoutGuide.constant -= 60
+        UIView.animate(withDuration: 0.25, animations: {
+            self.view.layoutIfNeeded()
+        }) 
     }
     
     func addPinDropRecognizer() {
         self.mapView.gestureRecognizers = nil
         let pindropGesture = UILongPressGestureRecognizer(target: self, action: #selector(MapViewController.dropPin(_:)))
+        pindropGesture.minimumPressDuration = 1.5
         self.mapView.addGestureRecognizer(pindropGesture)
     }
     
-    func dropPin(gestureRecognizer:UIGestureRecognizer){
-        let touchPoint = gestureRecognizer.locationInView(self.mapView)
-        let newCoordinates = self.mapView.convertPoint(touchPoint, toCoordinateFromView: self.mapView)
-        let annotation = MKPointAnnotation()
-        annotation.coordinate = newCoordinates
-        self.mapView.addAnnotation(annotation)
+    func dropPin(_ gestureRecognizer:UIGestureRecognizer){
+        if (gestureRecognizer.state == .began) {
+            let touchPoint = gestureRecognizer.location(in: self.mapView)
+            let newCoordinates = self.mapView.convert(touchPoint, toCoordinateFrom: self.mapView)
+            let annotation = MKPointAnnotation()
+            annotation.coordinate = newCoordinates
+            
+            let pin = Pin(location: newCoordinates, context: sharedContext)
+            pins.append(pin)
+            self.mapView.addAnnotation(annotation)
+
+            sharedStack.save()
+        }
     }
     
     func saveMapRegion() {
@@ -83,28 +148,28 @@ class MapViewController: UIViewController {
         // It represents the zoom level of the map.
         
         let dictionary = [
-            "latitude" : mapView.region.center.latitude,
-            "longitude" : mapView.region.center.longitude,
-            "latitudeDelta" : mapView.region.span.latitudeDelta,
-            "longitudeDelta" : mapView.region.span.longitudeDelta
+            MapRegion.Keys.latitude : mapView.region.center.latitude,
+            MapRegion.Keys.longitude : mapView.region.center.longitude,
+            MapRegion.Keys.latitudeDelta : mapView.region.span.latitudeDelta,
+            MapRegion.Keys.longitudeDelta : mapView.region.span.longitudeDelta
         ]
         
         // Archive the dictionary into the filePath
         NSKeyedArchiver.archiveRootObject(dictionary, toFile: mapRegionFilePath)
     }
     
-    func restoreMapRegion(animated: Bool) {
+    func restoreMapRegion(_ animated: Bool) {
         
         // if we can unarchive a dictionary, we will use it to set the map back to its
         // previous center and span
-        if let regionDictionary = NSKeyedUnarchiver.unarchiveObjectWithFile(mapRegionFilePath) as? [String : AnyObject] {
+        if let regionDictionary = NSKeyedUnarchiver.unarchiveObject(withFile: mapRegionFilePath) as? [String : AnyObject] {
             
-            let longitude = regionDictionary["longitude"] as! CLLocationDegrees
-            let latitude = regionDictionary["latitude"] as! CLLocationDegrees
+            let longitude = regionDictionary[MapRegion.Keys.longitude] as! CLLocationDegrees
+            let latitude = regionDictionary[MapRegion.Keys.latitude] as! CLLocationDegrees
             let center = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
             
-            let longitudeDelta = regionDictionary["latitudeDelta"] as! CLLocationDegrees
-            let latitudeDelta = regionDictionary["longitudeDelta"] as! CLLocationDegrees
+            let longitudeDelta = regionDictionary[MapRegion.Keys.latitudeDelta] as! CLLocationDegrees
+            let latitudeDelta = regionDictionary[MapRegion.Keys.longitudeDelta] as! CLLocationDegrees
             let span = MKCoordinateSpan(latitudeDelta: latitudeDelta, longitudeDelta: longitudeDelta)
             
             let savedRegion = MKCoordinateRegion(center: center, span: span)
@@ -114,23 +179,31 @@ class MapViewController: UIViewController {
             mapView.setRegion(savedRegion, animated: animated)
         }
     }
+}
+
+extension MapViewController : NSFetchedResultsControllerDelegate {
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        
+    }
     
-    
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        
+    }
 }
 
 extension MapViewController : MKMapViewDelegate {
     
     //Tap and hold gesture for map = drop a new pin at the tap and hold location
     
-    func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         let reuseId = "pin"
         
-        var pinView = mapView.dequeueReusableAnnotationViewWithIdentifier(reuseId) as? MKPinAnnotationView
+        var pinView = mapView.dequeueReusableAnnotationView(withIdentifier: reuseId) as? MKPinAnnotationView
         
         if pinView == nil {
             pinView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: reuseId)
             pinView?.animatesDrop = true
-            pinView!.pinTintColor = UIColor.redColor()
+            pinView!.pinTintColor = UIColor.red
         }
         else {
             pinView!.annotation = annotation
@@ -139,12 +212,33 @@ extension MapViewController : MKMapViewDelegate {
         return pinView
     }
     
-    func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
+    func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
         // Segue to next view and perform request from flickr
-        print(view.annotation?.coordinate)
+        mapView.deselectAnnotation(view.annotation, animated: true)
+        var index : Int = 0
+        for pin in pins {
+            if pin.latitude?.doubleValue == view.annotation?.coordinate.latitude &&
+                pin.longitude?.doubleValue == view.annotation?.coordinate.longitude{
+                break;
+            } else {
+                index = index + 1
+            }
+        }
+
+        if editMode {
+            mapView.removeAnnotation(view.annotation!)
+            sharedContext.delete(pins[index] as NSManagedObject)
+            sharedStack.save()
+            self.pins.remove(at: index)
+        } else {
+            let storyboard = UIStoryboard(name: "Main", bundle: Bundle.main)
+            let controller = storyboard.instantiateViewController(withIdentifier: "PhotoAlbumViewController") as! PhotoAlbumViewController
+            controller.pin = pins[index]
+            self.navigationController!.pushViewController(controller, animated: true)
+        }
     }
     
-    func mapView(mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+    func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
         saveMapRegion()
     }
 }
