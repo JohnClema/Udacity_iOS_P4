@@ -14,7 +14,6 @@
 		050E9EA91DD8336A0010AE16 /* Pin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 050E9EA71DD8336A0010AE16 /* Pin.swift */; };
 		050E9EAA1DD8336A0010AE16 /* Pin+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 050E9EA81DD8336A0010AE16 /* Pin+CoreDataProperties.swift */; };
 		050E9EAC1DD833870010AE16 /* PhotoAlbumViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 050E9EAB1DD833870010AE16 /* PhotoAlbumViewController.swift */; };
-		0529B4EC1DD89F670023E1D7 /* MapRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0529B4EB1DD89F670023E1D7 /* MapRegion.swift */; };
 		0562D7D21CD0814E00C52406 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0562D7D11CD0814E00C52406 /* AppDelegate.swift */; };
 		0562D7D71CD0814E00C52406 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0562D7D51CD0814E00C52406 /* Main.storyboard */; };
 		0562D7D91CD0814E00C52406 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0562D7D81CD0814E00C52406 /* Assets.xcassets */; };
@@ -37,7 +36,6 @@
 		050E9EA71DD8336A0010AE16 /* Pin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Pin.swift; sourceTree = "<group>"; };
 		050E9EA81DD8336A0010AE16 /* Pin+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Pin+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		050E9EAB1DD833870010AE16 /* PhotoAlbumViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoAlbumViewController.swift; sourceTree = "<group>"; };
-		0529B4EB1DD89F670023E1D7 /* MapRegion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MapRegion.swift; sourceTree = "<group>"; };
 		0562D7CE1CD0814E00C52406 /* Virtual Tourist.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Virtual Tourist.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0562D7D11CD0814E00C52406 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0562D7D61CD0814E00C52406 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -78,7 +76,6 @@
 			isa = PBXGroup;
 			children = (
 				050E9E9D1DD831770010AE16 /* MapViewController.swift */,
-				0529B4EB1DD89F670023E1D7 /* MapRegion.swift */,
 				050E9EA71DD8336A0010AE16 /* Pin.swift */,
 				050E9EA81DD8336A0010AE16 /* Pin+CoreDataProperties.swift */,
 			);
@@ -226,7 +223,6 @@
 				050E9EA01DD832A70010AE16 /* VirtualTouristViewController.swift in Sources */,
 				050E9E9E1DD831770010AE16 /* MapViewController.swift in Sources */,
 				050E9EA21DD832FD0010AE16 /* CoreDataStackManager.swift in Sources */,
-				0529B4EC1DD89F670023E1D7 /* MapRegion.swift in Sources */,
 				0570CEA71DD84938009AEAB9 /* Photo+CoreDataProperties.swift in Sources */,
 				050E9EA61DD8334D0010AE16 /* NSManagedObject+Entity.swift in Sources */,
 				0570CEAD1DD84951009AEAB9 /* ImageCache.swift in Sources */,

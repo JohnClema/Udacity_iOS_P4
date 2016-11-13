@@ -16,8 +16,6 @@ extension Photo {
 
     @NSManaged var creationDate: Date?
     @NSManaged var data: NSData?
-    @NSManaged var imageUrl: String?
-    @NSManaged var imagePath: String?
     @NSManaged var pin: Pin?
 
 }

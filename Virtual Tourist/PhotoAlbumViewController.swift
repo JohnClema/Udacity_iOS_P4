@@ -12,6 +12,7 @@ import MapKit
 
 class PhotoAlbumViewController: VirtualTouristViewController {
     
+    @IBOutlet weak var downloadActivityIndicator: UIActivityIndicatorView!
     @IBOutlet weak var noImagesLabel: UILabel!
     @IBOutlet weak var newCollectionButton: UIBarButtonItem!
     @IBOutlet weak var collectionView: UICollectionView!
@@ -46,6 +47,7 @@ class PhotoAlbumViewController: VirtualTouristViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.downloadActivityIndicator.isHidden = true
         self.noImagesLabel.isHidden = true
         collectionView.dataSource = self
         collectionView.delegate = self
@@ -68,21 +70,7 @@ class PhotoAlbumViewController: VirtualTouristViewController {
             self.requestPhotos()
 
         }
-//        //        if fetchedResultsController.fetchedObjects?.count == 0 {
-//        //            // fail gracfully - download new collection
-//        //            loadNewCollectionSet()
-//        //        }
-//        
-//        //disable new collection button if we are already downloading
-//        if (pin?.isDownloading)! {
-//            newCollectionButton.isEnabled = false
-//        }
-//        
-//        NotificationCenter.default.addObserver(self, selector: #selector(PhotoAlbumViewController.pinFinishedDownload), name: NSNotification.Name(rawValue: photosFinishedDownloadingNotification), object: nil)
-        
-        //        if pin !hasPhotos, download
-        
-        //Perform image request
+
     }
     @IBAction func newCollectionButtonTapped(_ sender: Any) {
         
@@ -115,8 +103,12 @@ class PhotoAlbumViewController: VirtualTouristViewController {
     
     func requestPhotos() {
         self.newCollectionButton.isEnabled = false
+        self.downloadActivityIndicator.isHidden = false
+        self.downloadActivityIndicator.startAnimating()
         FlickrClient.sharedInstance().downloadPhotosForPin(self.pin!, completionHandler: { (completed, errormessage) in
             if completed {
+                self.downloadActivityIndicator.stopAnimating()
+                self.downloadActivityIndicator.isHidden = true
                 if self.pin!.photos!.isEmpty {
                     self.noImagesLabel.isHidden = false
                     self.newCollectionButton.isEnabled = false
@@ -124,26 +116,8 @@ class PhotoAlbumViewController: VirtualTouristViewController {
                     self.noImagesLabel.isHidden = true
                     self.newCollectionButton.isEnabled = true
                 }
-            } else {
-                self.noImagesLabel.isHidden = false
-                self.newCollectionButton.isEnabled = false
-            }
+            } 
         })
-    }
-    
-    func pinFinishedDownload() {
-        if pin?.isDownloading == true {
-            return
-        }
-        self.newCollectionButton.isEnabled = true
-        
-        if let objects = self.fetchedResultsController.fetchedObjects {
-            if objects.count == 0 {
-                self.collectionView.isHidden = true
-                //                self.noImagesLabel.hidden = false
-                self.newCollectionButton.isEnabled = false
-            }
-        }
     }
     
     fileprivate func getMapRegionForPin() {
@@ -195,7 +169,7 @@ extension PhotoAlbumViewController : UICollectionViewDataSource, UICollectionVie
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoCell", for: indexPath) as! PhotoCell
         let photo = fetchedResultsController.object(at: indexPath)
-        if photo.imagePath != nil {
+        if photo.image != nil {
             
 //            let image = UIImage(contentsOfFile: photo.imagePath!)
             cell.activityIndicator.stopAnimating()

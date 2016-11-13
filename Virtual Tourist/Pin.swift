@@ -11,8 +11,6 @@ import CoreLocation
 
 class Pin: NSManagedObject {
     
-    var isDownloading = false
-    
     var coordinate: CLLocationCoordinate2D {
         return CLLocationCoordinate2D(latitude: self.latitude!.doubleValue, longitude: self.longitude!.doubleValue)
     }
@@ -26,18 +24,6 @@ class Pin: NSManagedObject {
             self.longitude = location.longitude as NSNumber?
         } else {
             fatalError("Unable to find Entity Name")
-        }
-    }
-    
-    var humanReadableAge : String {
-        get {
-            let fmt = DateFormatter()
-            fmt.timeStyle = .none
-            fmt.dateStyle = .short
-            fmt.doesRelativeDateFormatting = true
-            fmt.locale = Locale.current
-            
-            return fmt.string(from: creationDate! as Date)
         }
     }
 }

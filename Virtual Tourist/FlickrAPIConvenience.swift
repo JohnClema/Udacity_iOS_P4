@@ -20,20 +20,9 @@ extension FlickrClient {
     
     func downloadPhotosForPin(_ pin: Pin, completionHandler: @escaping (_ success: Bool, _ errorString: String?) -> Void) {
         
-        // see if we previously  received total number of pages for pin
-        var pageNumber = 1
-        
-        if let numPages = pin.pageCount {
-            var numPagesInt = numPages as Int
-            // We might only access the first 4000 images returned by a search, so limit the results
-            if numPagesInt > 190 {
-                numPagesInt = 190
-            }
-            pageNumber = Int((arc4random_uniform(UInt32(numPagesInt)))) + 1
-            print("Getting photos for page number \(pageNumber) in \(numPages) total pages")
-        }
-        // generate bounding box string from pin coordinate
         let bbox = self.bboxString(pin.coordinate)
+        let randomPage = randomPageNumber(totalPageCount: pin.pageCount!.intValue)
+        let randomSortKey = randomSortKeyString()
         
         let parameters : [String: AnyObject] = [
             FlickrClient.URLKeys.APIKey: FlickrClient.Constants.APIKey as AnyObject,
@@ -42,9 +31,9 @@ extension FlickrClient {
             FlickrClient.URLKeys.Format: FlickrClient.URLValues.JSONFormat as AnyObject,
             FlickrClient.URLKeys.NoJSONCallback: "1" as AnyObject,
             FlickrClient.URLKeys.BoundingBox: bbox as AnyObject,
-            FlickrClient.URLKeys.Page: pageNumber as AnyObject,
+            FlickrClient.URLKeys.Page: randomPage as AnyObject,
             FlickrClient.URLKeys.PerPage: 21 as AnyObject,
-            FlickrClient.URLKeys.Sort: randomSortKeyString() as AnyObject
+            FlickrClient.URLKeys.Sort: randomSortKey as AnyObject
         ]
         
         let task = taskForGETMethod(nil, parameters: parameters, parseJSON: true) { (JSONResult, error) in
@@ -63,22 +52,17 @@ extension FlickrClient {
                     }
                     for photoDictionary in photosArray {
                         let photoURLString = photoDictionary["url_m"] as! String
-                        let photo = Photo(imageUrl: photoURLString, pin: pin, context: self.sharedContext)
-                        self.sharedContext.insert(photo)
-                        try! self.sharedContext.save()
-                        self.downloadImageForPhoto(photo) { (success, errorString) in
-                            if success {
-                                debugPrint("success \(photo.creationDate)")
+                        self.downloadImageFromURLPath(path: photoURLString, pin: pin, completionHandler: { (completed, errorMessage) in
+                            if completed {
                                 itemCount = itemCount + 1
                                 if itemCount == photosArray.count {
                                     completionHandler(true, nil)
-                                    
                                 }
-                                
-                            } else {
-                                completionHandler(false, "Unable to download Photos")
                             }
-                        }
+                            if (errorMessage != nil) {
+                                completionHandler(false, errorMessage)
+                            }
+                        })
                     }
                 } else {
                     completionHandler(false, "Unable to download Photos")
@@ -89,26 +73,16 @@ extension FlickrClient {
         task.resume()
     }
     
-    func downloadImageForPhoto(_ photo: Photo, completionHandler: @escaping (_ success: Bool, _ errorString: String?) -> Void) {
-        
-        
-        
-        let task = taskForGETMethod(photo.imageUrl!, parameters: nil, parseJSON: false) { (result, error) in
+    func downloadImageFromURLPath(path: String, pin: Pin, completionHandler: @escaping (_ success: Bool, _ errorString: String?) -> Void) {
+        let task = self.taskForGETMethod(path, parameters: nil, parseJSON: false) { (result, error) in
             if error != nil {
                 completionHandler(false, "Photo download failed")
             } else {
-                if let result = result {
-                        let fileName = (photo.imageUrl! as NSString).lastPathComponent
-                        let path = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
-                        let fileURL = URL(string: path)?.appendingPathComponent(fileName)
-                    
-                    
-                    
-                        FileManager.default.createFile(atPath: fileURL!.path, contents: result as? Data, attributes: nil)
-                        
-                        photo.imagePath = fileURL?.path
-                        self.sharedStack.save()
-                        completionHandler(true, nil)
+                if let result = result as? NSData {
+                    let photo = Photo(data: result , pin: pin, context: self.sharedContext)
+                    self.sharedContext.insert(photo)
+                    self.sharedStack.save()
+                    completionHandler(true, nil)
                 } else {
                     completionHandler(false, "Photo download failed")
                 }
@@ -131,6 +105,18 @@ extension FlickrClient {
     func randomSortKeyString() -> String {
         let possibleSorts = ["date-posted-desc", "date-posted-asc", "date-taken-desc", "date-taken-asc", "interstingness-desc", "interestingness-asc"]
         return possibleSorts[Int((arc4random_uniform(UInt32(possibleSorts.count))))]
+    }
+    
+    func randomPageNumber(totalPageCount: Int) -> Int {
+        var pageNumber = 1
+        var numPagesInt = totalPageCount as Int
+        // We might only access the first 4000 images returned by a search, so limit the results
+        if numPagesInt > 190 {
+            numPagesInt = 190
+        }
+        pageNumber = Int((arc4random_uniform(UInt32(numPagesInt)))) + 1
+
+        return pageNumber
     }
     
     var sharedContext: NSManagedObjectContext {
