@@ -9,7 +9,10 @@
 import CoreData
 import UIKit
 
-class VirtualTouristViewController: UIViewController {    
+class VirtualTouristViewController: UIViewController {
+    
+    let photosFinishedDownloadingNotification = "PhotosFinishedDownloadNotification"
+
     var sharedStack: CoreDataStackManager {
         let delegate = UIApplication.shared.delegate as! AppDelegate
         return delegate.dataStack

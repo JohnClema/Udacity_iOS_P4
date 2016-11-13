@@ -16,9 +16,10 @@ struct ButtonTitles {
     static let done = "Done"
 }
 
+
 struct MapRegion {
     static let archive = "mapRegionArchive"
-    
+
     struct Keys {
         static let latitude = "latitude"
         static let longitude = "longitude"
@@ -37,10 +38,6 @@ class MapViewController: VirtualTouristViewController {
 
     // Determines users current edit state
     var editMode : Bool = false
-    
-    override var sharedContext: NSManagedObjectContext {
-        return sharedStack.context
-    }
     
     lazy var fetchedResultsController: NSFetchedResultsController<Pin> = {
         // Initialize Fetch Request
@@ -95,7 +92,7 @@ class MapViewController: VirtualTouristViewController {
     }
 
     func editButtonPressed(_ sender: AnyObject) {
-        self.navigationItem.rightBarButtonItem?.title == "Edit" ? showEditButton() : showDoneButton()
+        self.navigationItem.rightBarButtonItem?.title == ButtonTitles.edit ? showEditButton() : showDoneButton()
     }
     
     // Move keyboard up and remove pins on tap
@@ -111,7 +108,7 @@ class MapViewController: VirtualTouristViewController {
     // Move keyboard down and resume adding pins
     func showDoneButton() {
         self.editMode = false
-        self.navigationItem.rightBarButtonItem?.title = "Edit"
+        self.navigationItem.rightBarButtonItem?.title = ButtonTitles.edit
         self.view.layoutIfNeeded()
         self.mapViewBottomLayoutGuide.constant -= 60
         UIView.animate(withDuration: 0.25, animations: {
@@ -138,6 +135,7 @@ class MapViewController: VirtualTouristViewController {
             self.mapView.addAnnotation(annotation)
 
             sharedStack.save()
+            self.saveMapRegion()
         }
     }
     
@@ -153,16 +151,19 @@ class MapViewController: VirtualTouristViewController {
             MapRegion.Keys.latitudeDelta : mapView.region.span.latitudeDelta,
             MapRegion.Keys.longitudeDelta : mapView.region.span.longitudeDelta
         ]
-        
+    
         // Archive the dictionary into the filePath
-        NSKeyedArchiver.archiveRootObject(dictionary, toFile: mapRegionFilePath)
+        if FileManager().isDeletableFile(atPath: mapRegionFilePath) {
+            try! FileManager().removeItem(atPath: mapRegionFilePath)
+        }
+        UserDefaults.standard.set(dictionary, forKey: MapRegion.archive)
     }
     
     func restoreMapRegion(_ animated: Bool) {
         
         // if we can unarchive a dictionary, we will use it to set the map back to its
         // previous center and span
-        if let regionDictionary = NSKeyedUnarchiver.unarchiveObject(withFile: mapRegionFilePath) as? [String : AnyObject] {
+        if let regionDictionary = UserDefaults.standard.value(forKey: MapRegion.archive) as? [String: Any] {
             
             let longitude = regionDictionary[MapRegion.Keys.longitude] as! CLLocationDegrees
             let latitude = regionDictionary[MapRegion.Keys.latitude] as! CLLocationDegrees
@@ -181,20 +182,11 @@ class MapViewController: VirtualTouristViewController {
     }
 }
 
-extension MapViewController : NSFetchedResultsControllerDelegate {
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        
-    }
-    
-    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        
-    }
-}
+extension MapViewController : NSFetchedResultsControllerDelegate {}
 
 extension MapViewController : MKMapViewDelegate {
     
     //Tap and hold gesture for map = drop a new pin at the tap and hold location
-    
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         let reuseId = "pin"
         

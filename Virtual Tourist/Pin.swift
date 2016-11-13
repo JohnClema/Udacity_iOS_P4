@@ -14,7 +14,7 @@ class Pin: NSManagedObject {
     var isDownloading = false
     
     var coordinate: CLLocationCoordinate2D {
-        return CLLocationCoordinate2D(latitude: self.latitude as! Double, longitude: self.longitude as! Double)
+        return CLLocationCoordinate2D(latitude: self.latitude!.doubleValue, longitude: self.longitude!.doubleValue)
     }
 
     // Insert code here to add functionality to your managed object subclass
