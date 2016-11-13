@@ -170,11 +170,8 @@ extension PhotoAlbumViewController : UICollectionViewDataSource, UICollectionVie
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoCell", for: indexPath) as! PhotoCell
         let photo = fetchedResultsController.object(at: indexPath)
         if photo.image != nil {
-            
-//            let image = UIImage(contentsOfFile: photo.imagePath!)
             cell.activityIndicator.stopAnimating()
             cell.activityIndicator.isHidden = true
-
             cell.imageView.image = photo.image!
         }
         
@@ -185,10 +182,6 @@ extension PhotoAlbumViewController : UICollectionViewDataSource, UICollectionVie
         if collectionView.indexPathsForSelectedItems!.isEmpty {
             self.newCollectionButton.title = "New Collection"
         }
-        
-//        collectionView.deselectItem(at: indexPath, animated: true)
-//        collectionView.cellForItem(at: indexPath)?.isSelected = false
-
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {

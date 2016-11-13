@@ -23,7 +23,6 @@
 		0570CEA71DD84938009AEAB9 /* Photo+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CEA51DD84938009AEAB9 /* Photo+CoreDataProperties.swift */; };
 		0570CEAB1DD84951009AEAB9 /* FlickrAPIConvenience.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CEA81DD84951009AEAB9 /* FlickrAPIConvenience.swift */; };
 		0570CEAC1DD84951009AEAB9 /* FlickrClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CEA91DD84951009AEAB9 /* FlickrClient.swift */; };
-		0570CEAD1DD84951009AEAB9 /* ImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CEAA1DD84951009AEAB9 /* ImageCache.swift */; };
 		0570CEAF1DD84A15009AEAB9 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CEAE1DD84A15009AEAB9 /* Constants.swift */; };
 		0570CEB21DD84B53009AEAB9 /* PhotoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CEB11DD84B53009AEAB9 /* PhotoCell.swift */; };
 /* End PBXBuildFile section */
@@ -47,7 +46,6 @@
 		0570CEA51DD84938009AEAB9 /* Photo+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Photo+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		0570CEA81DD84951009AEAB9 /* FlickrAPIConvenience.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlickrAPIConvenience.swift; sourceTree = "<group>"; };
 		0570CEA91DD84951009AEAB9 /* FlickrClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlickrClient.swift; sourceTree = "<group>"; };
-		0570CEAA1DD84951009AEAB9 /* ImageCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
 		0570CEAE1DD84A15009AEAB9 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		0570CEB11DD84B53009AEAB9 /* PhotoCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -89,7 +87,6 @@
 				0570CEA51DD84938009AEAB9 /* Photo+CoreDataProperties.swift */,
 				050E9EAB1DD833870010AE16 /* PhotoAlbumViewController.swift */,
 				0570CEB11DD84B53009AEAB9 /* PhotoCell.swift */,
-				0570CEAA1DD84951009AEAB9 /* ImageCache.swift */,
 			);
 			name = "Photo Album";
 			sourceTree = "<group>";
@@ -225,7 +222,6 @@
 				050E9EA21DD832FD0010AE16 /* CoreDataStackManager.swift in Sources */,
 				0570CEA71DD84938009AEAB9 /* Photo+CoreDataProperties.swift in Sources */,
 				050E9EA61DD8334D0010AE16 /* NSManagedObject+Entity.swift in Sources */,
-				0570CEAD1DD84951009AEAB9 /* ImageCache.swift in Sources */,
 				0562D7E71CD082FE00C52406 /* Model.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

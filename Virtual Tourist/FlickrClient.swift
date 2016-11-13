@@ -73,23 +73,6 @@ class FlickrClient : NSObject {
         return task
     }
     
-    // create a URL from parameters
-//    private func flickrURLFromParameters(parameters: [String:AnyObject], withPathExtension: String? = nil) -> NSURL {
-//        
-//        let components = NSURLComponents()
-//        components.scheme = FlickrClient.Constants.ApiScheme
-//        components.host = FlickrClient.Constants.ApiHost
-//        components.path = FlickrClient.Constants.ApiPath + (withPathExtension ?? "")
-//        components.queryItems = [NSURLQueryItem]()
-//        
-//        for (key, value) in parameters {
-//            let queryItem = NSURLQueryItem(name: key, value: "\(value)")
-//            components.queryItems!.append(queryItem)
-//        }
-//        
-//        return components.URL!
-//    }
-    
     class func escapedParameters(_ parameters: [String : AnyObject]) -> String {
         
         var urlVars = [String]()
@@ -122,16 +105,6 @@ class FlickrClient : NSObject {
         }
         
         completionHandlerForConvertData(parsedResult, nil)
-    }
-    
-    fileprivate func bboxString(_ coordinate: CLLocationCoordinate2D) -> String {
-        let latitude = coordinate.latitude
-        let longitude = coordinate.longitude
-        let minLon = max(longitude - FlickrClient.Constants.SearchBBoxHalfWidth, FlickrClient.Constants.SearchLonRange.0)
-        let minLat = max(latitude - FlickrClient.Constants.SearchBBoxHalfHeight, FlickrClient.Constants.SearchLonRange.0)
-        let maxLon = min(longitude - FlickrClient.Constants.SearchBBoxHalfWidth, FlickrClient.Constants.SearchLonRange.1)
-        let maxLat = min(latitude - FlickrClient.Constants.SearchBBoxHalfHeight, FlickrClient.Constants.SearchLonRange.1)
-        return "\(minLon),\(minLat),\(maxLon),\(maxLat)"
     }
 
 }
